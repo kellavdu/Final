@@ -1,0 +1,74 @@
+CREATE OR REPLACE FUNCTION numero_divisible_por_once_mas_cercano( numero NUMBER) RETURN NUMBER AS 
+    es_divisible NUMBER := 0;
+    contador integer := 0;
+BEGIN 
+    WHILE es_divisible = 0
+    LOOP
+        IF MOD(numero + contador,11) = 0 THEN
+            es_divisible := 1;
+        ELSE 
+            es_divisible := 0;
+        END IF; 
+        contador := contador + 1
+    END LOOP;
+
+    return contador;
+END;
+
+CREATE OR REPLACE FUNCTION numero_divisible_por_diez_mas_cercano( numero NUMBER) RETURN NUMBER AS 
+    es_divisible NUMBER := 0;
+    contador integer := 0;
+BEGIN 
+    WHILE es_divisible = 0
+    LOOP
+        IF MOD(numero + contador,10) = 0 THEN
+            es_divisible := 1;
+        ELSE 
+            es_divisible := 0;
+        END IF; 
+        contador := contador + 1
+    END LOOP;
+
+    return contador;
+END;
+
+
+DECLARE
+    TYPE arreglo IS VARRAY(16) OF INTEGER;
+    mi_arreglo arreglo;    
+    acumulador_de_multiplicaciones INTEGER := 0;
+    contador INTEGER := 10;
+    tamanio_del_codigo_invalido_exception EXCEPTION;
+BEGIN
+    mi_arreglo := arreglo(0,3,0,6,4,0,6,1,5);
+    
+    IF mi_arreglo.COUNT NOT IN (10,13)   THEN
+        RAISE tamanio_del_codigo_invalido_exception;
+    END IF;
+
+    if mi_arreglo.COUNT = 10 THEN
+        FOR i IN 1..9 LOOP
+            acumulador_de_multiplicaciones := acumulador_de_multiplicaciones + mi_arreglo(i) * contador;
+            contador := contador - 1;
+        END LOOP; 
+
+        dbms_output.put_line('digito de verificacion ISBN-10 es: '||numero_divisible_por_once_mas_cercano(acumulador_de_multiplicaciones));
+    ELSE
+
+        FOR i IN 1..12 LOOP
+            IF MOD(i,2) = 0 THEN
+                acumulador_de_multiplicaciones := acumulador_de_multiplicaciones + mi_arreglo(i) * 1; -- Ó multiplicacion por 3
+            ELSE 
+                acumulador_de_multiplicaciones := acumulador_de_multiplicaciones + mi_arreglo(i) * 3; -- Ó multiplicacion por 1
+            END IF; 
+        END LOOP; 
+
+        dbms_output.put_line('digito de verificacion ISBN-13 es: '||numero_divisible_por_diez_mas_cercano(acumulador_de_multiplicaciones));
+          
+    END IF;
+
+    
+    EXCEPTION
+        WHEN tamanio_del_codigo_invalido_exception THEN
+            dbms_output.put_line('eL TAMANIO DEL CODIGO ES INCORRECTO');
+END;
